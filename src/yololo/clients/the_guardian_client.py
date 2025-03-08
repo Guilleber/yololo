@@ -1,0 +1,13 @@
+from yololo.clients.client import IClient
+from yololo.domain.document import Document
+
+
+class TheGuardianClient(IClient):
+    def retrieve_document(self, url: str) -> Document:
+        """
+        retrieve the document (e.g. article) found at the given url.
+
+        :param url: the url of the document
+        :return: the retrieved document
+        """
+        raise NotImplementedError
