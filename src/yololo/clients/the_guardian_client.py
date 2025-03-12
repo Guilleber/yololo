@@ -10,4 +10,6 @@ class TheGuardianClient(IClient):
         :param url: the url of the document
         :return: the retrieved document
         """
-        raise NotImplementedError
+        client = IClient()
+        doc = client.retrieve_document(url)
+        return doc
