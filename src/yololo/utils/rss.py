@@ -1,5 +1,6 @@
 import email.utils
 from time import mktime
+from typing import List
 from datetime import datetime
 
 import feedparser
@@ -7,7 +8,7 @@ import feedparser
 from yololo.domain.document import Document
 
 
-def read_feed(url: str) -> list[Document]:
+def read_feed(url: str) -> List[Document]:
     data = feedparser.parse(url)
     documents = []
     for entry in data.entries:
@@ -16,6 +17,7 @@ def read_feed(url: str) -> list[Document]:
             link=entry.link,
             title=entry.title,
             pub_date=datetime.fromtimestamp(mktime(date)),
-            content=entry.description
+            content=entry.description,
+            source=url
         ))
     return documents
