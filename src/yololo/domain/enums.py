@@ -1,10 +1,10 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class Language(StrEnum):
+class Language(Enum):
     ENGLISH = 'en'
     FRENCH = 'fr'
 
 
-class Source(StrEnum):
+class Source(Enum):
     THE_GUARDIAN = 'the_guardian'

@@ -173,3 +173,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .idea
+
+fred_dev/hf_cache
+hf_cache
+llama3-8b
