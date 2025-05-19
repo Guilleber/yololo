@@ -1,6 +1,8 @@
 import argparse
 
 from yololo.llm.hf import HuggingFaceModel
+# from yololo.retrieval
+
 
 
 def main(arguments: argparse.Namespace):
@@ -21,7 +23,7 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="Qwen/Qwen3-0.6B",
+        default="Qwen/Qwen3-4B",
         help="Path to the YOLOv8 model file.",
     )
     args = parser.parse_args()
