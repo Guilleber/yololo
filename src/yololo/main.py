@@ -7,13 +7,12 @@ from yololo.domain.document import Document
 
 def main(arguments: argparse.Namespace):
     storage=ChromaDBStorage()
-    storage.add_document(
-        link="test",
-        title="titleTest",
-        content="titleContent")
-
-    #TODO : add document
-    #TODO : query document
+    docu_test = Document(
+        link="ImaginaryGuardian.com",
+        title="Elon Musk to repopulate earth alone",
+        content="Elon Musk claimed to want to repopulate earth alone if no one is to help him",
+        source="Imaginary Guardian")
+    storage.add_document(docu_test)
 
 
     hf_mod = HuggingFaceModel(model_id=arguments.model)
@@ -21,8 +20,14 @@ def main(arguments: argparse.Namespace):
         user_input = input("Enter your prompt: ")
         if user_input.lower() in ["exit", "quit"]:
             break
-        system_prompt = "You are a helpful assistant."
-        response = hf_mod.call(system_prompt, user_input)
+        system_prompt = ("You are a community note creator, tasked to fact check posts based on provided news from a database. "
+                         "Answer only based on provided news articles. If there is no relevant information in the provided articles, say you couldn't find relevant information, don't invent. ")
+        database = storage.query(user_input)['documents']
+
+        final_prompt=f"Post : {user_input}. Relevant news articles : {database}"
+
+
+        response = hf_mod.call(system_prompt, final_prompt)
         print(f"Response: {response}")
 
 

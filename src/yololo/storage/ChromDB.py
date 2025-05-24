@@ -20,8 +20,7 @@ class ChromaDBStorage:
 
 
     def query(self, query: str) -> list[Document]:
-        print(self.collection.query(
+        return self.collection.query(
             query_texts=[query],
             n_results=2
-        ))
-        raise NotImplementedError
+            )
