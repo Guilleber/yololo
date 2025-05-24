@@ -1,11 +1,21 @@
 import argparse
 
 from yololo.llm.hf import HuggingFaceModel
-# from yololo.retrieval
-
+from yololo.storage.ChromDB import ChromaDBStorage
+from yololo.domain.document import Document
 
 
 def main(arguments: argparse.Namespace):
+    storage=ChromaDBStorage()
+    storage.add_document(
+        link="test",
+        title="titleTest",
+        content="titleContent")
+
+    #TODO : add document
+    #TODO : query document
+
+
     hf_mod = HuggingFaceModel(model_id=arguments.model)
     while True:
         user_input = input("Enter your prompt: ")

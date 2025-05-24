@@ -1,12 +1,12 @@
 from yololo.domain.document import Document
 import chromadb
 
-class DocumentStorage:
+class ChromaDBStorage:
     def __init__(self):
         # setup Chroma in-memory, for easy prototyping. Can add persistence easily!
         client = chromadb.Client()
         # Create collection. get_collection, get_or_create_collection, delete_collection also available!
-        self.collection = client.create_collection("News article")
+        self.collection = client.create_collection("News_article")
 
     def add_document(self, document: Document):
         print(document)
@@ -16,6 +16,8 @@ class DocumentStorage:
             metadatas=[{"title": document.title, "source": document.source}],  # filter on these!
             ids=[f"{document.title}_{document.source}"],  # unique for each doc
         )
+
+
 
     def query(self, query: str) -> list[Document]:
         print(self.collection.query(
