@@ -1,4 +1,6 @@
 from yololo.domain.document import Document
+from yololo.clients.the_guardian_client import TheGuardianClient
+
 import chromadb
 
 class ChromaDBStorage:
@@ -9,7 +11,6 @@ class ChromaDBStorage:
         self.collection = client.create_collection("News_article")
 
     def add_document(self, document: Document):
-        print(document)
         self.collection.add(
             documents=[document.content],
             # we handle tokenization, embedding, and indexing automatically. You can skip that and add your own embeddings as well
@@ -17,7 +18,17 @@ class ChromaDBStorage:
             ids=[f"{document.title}_{document.source}"],  # unique for each doc
         )
 
+    def add_rss(self, url:str) -> None:
+        """
+        Add all documents from a RSS Flux
 
+        :param url:
+        :return:
+        """
+
+        client= TheGuardianClient()
+        for docu in client.retrieve_rss_flux(url):
+            self.add_document(docu)
 
     def query(self, query: str) -> list[Document]:
         return self.collection.query(

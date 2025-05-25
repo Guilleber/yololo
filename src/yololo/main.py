@@ -7,13 +7,11 @@ from yololo.domain.document import Document
 
 def main(arguments: argparse.Namespace):
     storage=ChromaDBStorage()
-    docu_test = Document(
-        link="ImaginaryGuardian.com",
-        title="Elon Musk to repopulate earth alone",
-        content="Elon Musk claimed to want to repopulate earth alone if no one is to help him",
-        source="Imaginary Guardian")
-    storage.add_document(docu_test)
 
+    storage.add_rss('https://www.theguardian.com/international/rss')
+
+    #TODO Save DB
+    #TODO mechanic to update DB for a given client
 
     hf_mod = HuggingFaceModel(model_id=arguments.model)
     while True:

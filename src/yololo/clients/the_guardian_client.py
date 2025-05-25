@@ -11,3 +11,4 @@ class TheGuardianClient(IClient):
         :return: the retrieved document
         """
         raise NotImplementedError
+
