@@ -1,37 +1,42 @@
 from yololo.domain.document import Document
 from yololo.clients.the_guardian_client import TheGuardianClient
 
+from chromadb.config import Settings
+from chromadb import PersistentClient
 import chromadb
 
+import os
+
 class ChromaDBStorage:
-    def __init__(self):
-        # setup Chroma in-memory, for easy prototyping. Can add persistence easily!
-        client = chromadb.Client()
-        # Create collection. get_collection, get_or_create_collection, delete_collection also available!
-        self.collection = client.create_collection("News_article")
+    def __init__(self, persist_directory: str = "./chroma_db"):
+        self.persist_directory = persist_directory
+        os.makedirs(persist_directory, exist_ok=True)
+
+        # Initialize Chroma with persistence
+        self.client = PersistentClient(path=self.persist_directory)
+
+        # Use get_or_create_collection to avoid errors if it already exists
+        self.collection = self.client.get_or_create_collection("News_article")
 
     def add_document(self, document: Document):
         self.collection.add(
             documents=[document.content],
-            # we handle tokenization, embedding, and indexing automatically. You can skip that and add your own embeddings as well
-            metadatas=[{"title": document.title, "source": document.source}],  # filter on these!
-            ids=[f"{document.title}_{document.source}"],  # unique for each doc
+            metadatas=[{"title": document.title, "source": document.source, "link": document.link}],
+            ids=[f"{document.title}_{document.source}"]
         )
 
-    def add_rss(self, url:str) -> None:
-        """
-        Add all documents from a RSS Flux
-
-        :param url:
-        :return:
-        """
-
-        client= TheGuardianClient()
+    def add_rss(self, url: str) -> None:
+        client = TheGuardianClient()
         for docu in client.retrieve_rss_flux(url):
             self.add_document(docu)
 
     def query(self, query: str) -> list[Document]:
-        return self.collection.query(
+        results = self.collection.query(
             query_texts=[query],
             n_results=2
-            )
+        )
+        # Reformat the results back into Document objects if needed
+        return [
+            Document(title=meta["title"], source=meta["source"], content=doc, link=meta["link"])
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+        ]

@@ -20,7 +20,7 @@ def main(arguments: argparse.Namespace):
             break
         system_prompt = ("You are a community note creator, tasked to fact check posts based on provided news from a database. "
                          "Answer only based on provided news articles. If there is no relevant information in the provided articles, say you couldn't find relevant information, don't invent. ")
-        database = storage.query(user_input)['documents']
+        database = storage.query(user_input) #['documents']
 
         final_prompt=f"Post : {user_input}. Relevant news articles : {database}"
 
