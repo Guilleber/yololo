@@ -6,6 +6,7 @@ from chromadb import PersistentClient
 import chromadb
 
 import os
+import hashlib
 
 class ChromaDBStorage:
     def __init__(self, persist_directory: str = "./chroma_db"):
@@ -18,12 +19,28 @@ class ChromaDBStorage:
         # Use get_or_create_collection to avoid errors if it already exists
         self.collection = self.client.get_or_create_collection("News_article")
 
+    def _document_exists(self, doc_id: str) -> bool:
+        try:
+            result = self.collection.get(ids=[doc_id])
+            return len(result["ids"]) > 0
+        except Exception:
+            return False
+
+    def generate_id(document: Document) -> str:
+        return hashlib.md5(f"{document.title}_{document.source}_{document.link}".encode()).hexdigest()
+
     def add_document(self, document: Document):
-        self.collection.add(
-            documents=[document.content],
-            metadatas=[{"title": document.title, "source": document.source, "link": document.link}],
-            ids=[f"{document.title}_{document.source}"]
-        )
+        doc_id = generate_id(document)
+        if not self._document_exists(doc_id):
+            self.collection.add(
+                documents=[document.content],
+                metadatas=[{
+                    "title": document.title,
+                    "source": document.source,
+                    "link": document.link
+                }],
+                ids=[doc_id]
+            )
 
     def add_rss(self, url: str) -> None:
         client = TheGuardianClient()

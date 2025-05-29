@@ -10,8 +10,11 @@ def main(arguments: argparse.Namespace):
 
     storage.add_rss('https://www.theguardian.com/international/rss')
 
-    #TODO Save DB
+    #TODO Save DB (check num doc)
     #TODO mechanic to update DB for a given client
+    #TODO Add source
+    #TODO construct initial DB
+    # TODO multiple DBs?
 
     hf_mod = HuggingFaceModel(model_id=arguments.model)
     while True:
