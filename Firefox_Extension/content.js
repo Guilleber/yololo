@@ -1,6 +1,33 @@
 let button = null;
 let lastSelectedText = "";
 
+function showTooltip(x, y, text) {
+  // Remove any previous tooltip
+  const existing = document.querySelector("#my-llm-tooltip");
+  if (existing) existing.remove();
+
+  const box = document.createElement("div");
+  box.id = "my-llm-tooltip";
+  box.textContent = text;
+
+  box.style.position = "absolute";
+  box.style.left = `${x}px`;
+  box.style.top = `${y}px`;
+  box.style.maxWidth = "300px";
+  box.style.background = "#fefefe";
+  box.style.border = "1px solid #ccc";
+  box.style.borderRadius = "8px";
+  box.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+  box.style.padding = "12px";
+  box.style.fontSize = "14px";
+  box.style.lineHeight = "1.5";
+  box.style.fontFamily = "Arial, sans-serif";
+  box.style.color = "#333";
+  box.style.zIndex = "9999";
+
+  document.body.appendChild(box);
+}
+
 function createButton(x, y, lastSelectedText) {
   removeButton();
 
@@ -21,9 +48,7 @@ function createButton(x, y, lastSelectedText) {
 
   button.addEventListener("mousedown", () => {
     if (lastSelectedText.trim() !== "") {
-      console.log("Mouseup triggered");
-        console.log("Selected:", lastSelectedText);
-      alert(`Selected text: "${lastSelectedText}"`);
+      showTooltip(x, y + 30, lastSelectedText); // appears just below the button
     }
   });
 
@@ -57,5 +82,12 @@ document.addEventListener("scroll", removeButton);
 document.addEventListener("mousedown", (e) => {
   if (button && !button.contains(e.target)) {
     removeButton();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const tooltip = document.querySelector("#my-llm-tooltip");
+  if (tooltip && !tooltip.contains(e.target) && e.target !== button) {
+    tooltip.remove();
   }
 });
