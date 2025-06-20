@@ -46,11 +46,36 @@ function createButton(x, y, lastSelectedText) {
   button.style.borderRadius = "4px";
   button.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.2)";
 
-  button.addEventListener("mousedown", () => {
-    if (lastSelectedText.trim() !== "") {
-      showTooltip(x, y + 30, lastSelectedText); // appears just below the button
-    }
-  });
+//  button.addEventListener("mousedown", () => {
+//    if (lastSelectedText.trim() !== "") {
+//      showTooltip(x, y + 30, lastSelectedText); // appears just below the button
+//    }
+//  });
+
+    button.addEventListener("mousedown", () => {
+      if (lastSelectedText.trim() !== "") {
+        // Show loading tooltip
+        showTooltip(x, y + 30, "Loading...");
+
+        // Send to local server
+        fetch("http://localhost:5000", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text: lastSelectedText })
+        })
+        .then(response => response.json())
+        .then(data => {
+          showTooltip(x, y + 30, data.message);
+        })
+        .catch(err => {
+          console.error("Error talking to local server:", err);
+          showTooltip(x, y + 30, "❌ Failed to connect to server");
+        });
+      }
+    });
+
 
   document.body.appendChild(button);
 }
