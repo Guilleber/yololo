@@ -31,7 +31,9 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
             #TODO : If this gets more complex, we should move this to a RAG class
             system_prompt = (
                 "You are a community note creator, tasked to fact check posts based on provided news from a database. "
-                "Answer only based on provided news articles. If there is no relevant information in the provided articles, say you couldn't find relevant information, don't invent. ")
+                "Answer only based on provided news articles. "
+                "If there is no relevant information in the provided articles, say you couldn't find relevant information, don't invent. "
+                "As a community note creator, your answer should be really short (max 140 characters).")
             database = storage.query(user_input)  # ['documents']
 
             final_prompt = f"Post : {user_input}. Relevant news articles : {database}"

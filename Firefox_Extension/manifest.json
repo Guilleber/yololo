@@ -9,10 +9,11 @@
       "48": "icon.png"
     }
   },
-  "permissions": [],
-  "host_permissions": [
-      "http://localhost:5000/"
-    ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": ["scripting"],
+  "host_permissions": ["http://localhost:5000/"],
 
   "content_scripts": [
     {

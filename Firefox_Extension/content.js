@@ -57,22 +57,33 @@ function createButton(x, y, lastSelectedText) {
         // Show loading tooltip
         showTooltip(x, y + 30, "Loading...");
 
-        // Send to local server
-        fetch("http://localhost:5000", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ text: lastSelectedText })
-        })
-        .then(response => response.json())
-        .then(data => {
-          showTooltip(x, y + 30, data.message);
-        })
-        .catch(err => {
-          console.error("Error talking to local server:", err);
-          showTooltip(x, y + 30, "❌ Failed to connect to server");
-        });
+//        // Send to local server
+//        fetch("http://localhost:5000", {
+//          method: "POST",
+//          headers: {
+//            "Content-Type": "application/json"
+//          },
+//          body: JSON.stringify({ text: lastSelectedText })
+//        })
+//        .then(response => response.json())
+//        .then(data => {
+//          showTooltip(x, y + 30, data.message);
+//        })
+//        .catch(err => {
+//          console.error("Error talking to local server:", err);
+//          showTooltip(x, y + 30, "❌ Failed to connect to server");
+//        });
+        chrome.runtime.sendMessage(
+          { type: "sendToLLM", text: lastSelectedText },
+          (response) => {
+            if (response && response.success) {
+              showTooltip(x, y + 30, response.data.message);
+            } else {
+              console.error("LLM error:", response?.error);
+              showTooltip(x, y + 30, "❌ LLM error");
+            }
+          }
+        );
       }
     });
 
