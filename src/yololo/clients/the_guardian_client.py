@@ -69,3 +69,8 @@ class TheGuardianRSSClient(IClient):
         raise NotImplementedError
 
 
+if __name__ == "__main__":
+    gg=TheGuardianClient()
+    gg.stream_newest()
+    print(gg)
+    fds
