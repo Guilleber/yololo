@@ -8,8 +8,8 @@ from yololo.domain.document import Document
 def main(arguments: argparse.Namespace):
     storage=ChromaDBStorage()
 
-    storage.add_rss('https://www.theguardian.com/international/rss')
-
+    # storage.add_rss('https://www.theguardian.com/international/rss')
+    storage.update_database()
     #TODO Save DB (check num doc)
     #TODO mechanic to update DB for a given client
     #TODO Add source
