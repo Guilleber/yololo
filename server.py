@@ -8,6 +8,8 @@ from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
 from yololo.domain.document import Document
 
+import gc
+import torch
 
 # Factory to inject LLM into handler
 def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: ChromaDBStorage) -> None:
@@ -40,6 +42,8 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
 
             response = llm_instance.call(system_prompt, final_prompt)
 
+
+
             print(response)
 
             response = {"message": response}
@@ -60,7 +64,7 @@ def main(argdict: argparse.Namespace) -> None:
     storage=ChromaDBStorage()
 
     # storage.add_rss('https://www.theguardian.com/international/rss')
-    storage.update_database()
+    # storage.update_database()
 
     llm = HuggingFaceModel(model_id=argdict.model)
     # Create the handler class with the LLM preloaded
@@ -70,6 +74,8 @@ def main(argdict: argparse.Namespace) -> None:
     httpd = HTTPServer(("localhost", 5000), HandlerClass)
     print("Server running at http://localhost:5000")
     httpd.serve_forever()
+
+
 
 
 if __name__ == "__main__":
