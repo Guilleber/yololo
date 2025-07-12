@@ -64,7 +64,7 @@ def main(argdict: argparse.Namespace) -> None:
     storage=ChromaDBStorage()
 
     # storage.add_rss('https://www.theguardian.com/international/rss')
-    # storage.update_database()
+    storage.update_database()
 
     llm = HuggingFaceModel(model_id=argdict.model)
     # Create the handler class with the LLM preloaded
