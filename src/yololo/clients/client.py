@@ -7,6 +7,7 @@ from typing import Iterator
 
 
 class IClient(ABC):
+    
     @abstractmethod
     def retrieve_document(self, url: str) -> Document:
         """
