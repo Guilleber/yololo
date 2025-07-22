@@ -10,16 +10,65 @@ class TheGuardianClient(IClient):
     def __init__(self) -> None:
         self.base_url = "https://content.guardianapis.com/search"
         self.name = "The Guardian"
+        print("bitch")
 
-
-    def stream_newest(self) -> Iterator[dict]:
+    def stream_newest(self) -> Iterator[Document]:
         """
-        Stream the newest documents in theGuardian stream
+        Stream the newest documents in the Guardian stream, paginating through all results.
 
-        :return:
+        :return: Iterator of Document objects
         """
 
-        # TODO: Figure out how to get all newest eventually
+
+        base_url = "https://content.guardianapis.com/search"
+        page = 1
+        page_size = 50  # Guardian API max page size
+
+        while True:
+            print('hellp')
+            params = {
+                "page": page,
+                "page-size": page_size,
+                "order-by": "newest",
+                "show-fields": "bodyText",
+                "api-key": os.getenv("GUARDIAN_API_KEY"),
+            }
+
+            res = requests.get(base_url, params=params)
+            if res.status_code != 200:
+                print(f"Request failed with status code {res.status_code}")
+                print(res.text)
+                break
+
+            data = res.json()
+            results = data["response"].get("results", [])
+
+            if not results:
+                break
+
+            for dat in results:
+                # Make sure required fields are present
+                if "fields" in dat and "bodyText" in dat["fields"]:
+                    yield Document(
+                        link=dat["webUrl"],
+                        title=dat["webTitle"],
+                        content=dat["fields"]["bodyText"],
+                        source="The Guardian"
+                    )
+
+            # Stop if we've reached the last page
+            if page >= data["response"]["pages"]:
+                break
+
+            page += 1
+
+    def retrieve_document(self, url: str) -> Document:
+        """
+        retrieve the document (e.g. article) found at the given url.
+
+        :param url: the url of the document
+        :return: the retrieved document
+        """
         base_url = "https://content.guardianapis.com/search"
 
         params = {
@@ -29,22 +78,6 @@ class TheGuardianClient(IClient):
         }
 
         res = requests.get(base_url, params=params)
-
-        # Check if the request was successful
-        if res.status_code == 200:
-            data = res.json()
-            print(data["results"])
-        else:
-            print(f"Request failed with status code {res.status_code}")
-            print(res.text)
-
-    def retrieve_document(self, url: str) -> Document:
-        """
-        retrieve the document (e.g. article) found at the given url.
-
-        :param url: the url of the document
-        :return: the retrieved document
-        """
         raise NotImplementedError
 
 
@@ -70,7 +103,6 @@ class TheGuardianRSSClient(IClient):
 
 
 if __name__ == "__main__":
-    gg=TheGuardianClient()
-    gg.stream_newest()
-    print(gg)
-    fds
+    gg = TheGuardianClient()
+    for doc in gg.stream_newest():
+        print(doc)
