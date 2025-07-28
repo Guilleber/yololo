@@ -10,7 +10,6 @@ class TheGuardianClient(IClient):
     def __init__(self) -> None:
         self.base_url = "https://content.guardianapis.com/search"
         self.name = "The Guardian"
-        print("bitch")
 
     def stream_newest(self) -> Iterator[Document]:
         """
@@ -25,7 +24,6 @@ class TheGuardianClient(IClient):
         page_size = 50  # Guardian API max page size
 
         while True:
-            print('hellp')
             params = {
                 "page": page,
                 "page-size": page_size,
@@ -37,7 +35,6 @@ class TheGuardianClient(IClient):
             res = requests.get(base_url, params=params)
             if res.status_code != 200:
                 print(f"Request failed with status code {res.status_code}")
-                print(res.text)
                 break
 
             data = res.json()
