@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from typing import Sequence, Tuple, Dict
 
 from openai import OpenAI
@@ -8,7 +9,7 @@ from yololo.llm.llm import ILargeLanguageModel
 
 class OpenaiApi(ILargeLanguageModel):
     def __init__(self,
-                 model_id: str = "gpt-4o-mini",
+                 model_id: str | None = None,
                  api_key_or_path: str | None = None) -> None:
         """
         Initializes the openai api class with the due model id and api key
@@ -18,8 +19,12 @@ class OpenaiApi(ILargeLanguageModel):
         elif isinstance(api_key_or_path, str):
             self.api_key = api_key_or_path
         else:
+            load_dotenv()
             self.api_key = os.environ["OPENAI_API_KEY"]
-        self.model_id = model_id
+        if model_id is not None:
+            self.model_id = model_id
+        else:
+            self.model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.client = OpenAI(api_key=self.api_key)
         return
 
