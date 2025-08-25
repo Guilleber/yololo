@@ -1,18 +1,17 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import json
-from dotenv import load_dotenv
-
 import argparse
+
+import gc
+import torch
+from dotenv import load_dotenv
 
 from yololo.llm.openai_api import OpenaiApi
 from yololo.llm.hf import HuggingFaceModel
 from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
 from yololo.domain.document import Document
-
-import gc
-import torch
 
 
 class SimpleHandler(BaseHTTPRequestHandler):
