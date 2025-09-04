@@ -47,9 +47,9 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
         final_prompt = f"Post : {user_input}. Relevant news articles : {database}"
 
+        print(33333333333333333333333333333333333333333)
         response = self.llm_instance.call(system_prompt, final_prompt)
-
-        print(response)
+        print(444444444444444444444444444444444, response)
 
         response = {"message": response}
 
@@ -75,8 +75,11 @@ def main(argdict: argparse.Namespace) -> None:
 
     if [gn for gn in ["gpt", "o1", "o3", "o4"] if gn in argdict.model.lower()]:
         llm = OpenaiApi(model_id=argdict.model)
+        print(1000000000000000000000000)
     else:
         llm = HuggingFaceModel(model_id=argdict.model)
+        print(9999999999999999999999999999999)
+    print(111111111111111111111111111111, llm is not None)
     # Create the handler class with the LLM preloaded
     HandlerClass = make_handler_with_llm_and_db(llm, storage)
 
