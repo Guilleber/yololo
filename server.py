@@ -1,15 +1,18 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import os
 import json
-
 import argparse
 
+import gc
+import torch
+from dotenv import load_dotenv
+
+from yololo.llm.openai_api import OpenaiApi
 from yololo.llm.hf import HuggingFaceModel
 from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
 from yololo.domain.document import Document
 
-import gc
-import torch
 
 # Factory to inject LLM into handler
 def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: ChromaDBStorage) -> None:
@@ -57,16 +60,17 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
     return SimpleHandler
 
 
-
-
 def main(argdict: argparse.Namespace) -> None:
-
-    storage=ChromaDBStorage()
+    load_dotenv()  # Load environment variables from .env file
+    storage = ChromaDBStorage()
 
     # storage.add_rss('https://www.theguardian.com/international/rss')
     storage.update_database()
 
-    llm = HuggingFaceModel(model_id=argdict.model)
+    if [gn for gn in ["gpt", "o1", "o3", "o4"] if gn in argdict.model.lower()]:
+        llm = OpenaiApi(model_id=argdict.model)
+    else:
+        llm = HuggingFaceModel(model_id=argdict.model)
     # Create the handler class with the LLM preloaded
     HandlerClass = make_handler_with_llm_and_db(llm, storage)
 
@@ -74,8 +78,6 @@ def main(argdict: argparse.Namespace) -> None:
     httpd = HTTPServer(("localhost", 5000), HandlerClass)
     print("Server running at http://localhost:5000")
     httpd.serve_forever()
-
-
 
 
 if __name__ == "__main__":
