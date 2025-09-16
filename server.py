@@ -7,11 +7,10 @@ import gc
 import torch
 from dotenv import load_dotenv
 
-from yololo.llm.openai_api import OpenaiApi
-from yololo.llm.hf import HuggingFaceModel
+from yololo.llm.initiator import get_llm
+from yololo.domain.document import Document
 from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
-from yololo.domain.document import Document
 
 
 # Factory to inject LLM into handler
@@ -67,10 +66,7 @@ def main(argdict: argparse.Namespace) -> None:
     # storage.add_rss('https://www.theguardian.com/international/rss')
     storage.update_database()
 
-    if [gn for gn in ["gpt", "o1", "o3", "o4"] if gn in argdict.model.lower()]:
-        llm = OpenaiApi(model_id=argdict.model)
-    else:
-        llm = HuggingFaceModel(model_id=argdict.model)
+    llm = get_llm(model_id=argdict.model)
     # Create the handler class with the LLM preloaded
     HandlerClass = make_handler_with_llm_and_db(llm, storage)
 

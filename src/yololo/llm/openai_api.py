@@ -1,8 +1,8 @@
 import os
-from dotenv import load_dotenv
 from typing import Sequence, Tuple, Dict
 
 from openai import OpenAI
+from dotenv import load_dotenv
 
 from yololo.llm.llm import ILargeLanguageModel
 
@@ -26,13 +26,14 @@ class OpenaiApi(ILargeLanguageModel):
         else:
             self.model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.client = OpenAI(api_key=self.api_key)
+        self.models = self.client.models.list()
         return
 
     def call(self,
              user_prompt: str,
              system_prompt: str = "You are a helpful assistant.",
              history: Sequence[Tuple[str, str]] | Sequence[Dict[str, str]] | None = None,
-             **kwargs: Dict[str, str]
+             **kwargs,
              ) -> str:
         history = [] if history is None else history
         conversation_history = []
