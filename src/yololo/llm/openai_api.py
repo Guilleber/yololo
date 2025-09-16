@@ -24,7 +24,7 @@ class OpenaiApi(ILargeLanguageModel):
         if model_id is not None:
             self.model_id = model_id
         else:
-            self.model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+            self.model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
         self.client = OpenAI(api_key=self.api_key)
         self.models = self.client.models.list()
         return
