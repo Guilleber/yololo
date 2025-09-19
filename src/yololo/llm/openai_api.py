@@ -9,24 +9,14 @@ from yololo.llm.llm import ILargeLanguageModel
 
 class OpenaiApi(ILargeLanguageModel):
     def __init__(self,
-                 model_id: str | None = None,
-                 api_key_or_path: str | None = None) -> None:
+                 model_id: str) -> None:
         """
         Initializes the openai api class with the due model id and api key
         """
-        if api_key_or_path is not None and os.path.isfile(api_key_or_path):
-            self.api_key = open(api_key_or_path).read()
-        elif isinstance(api_key_or_path, str):
-            self.api_key = api_key_or_path
-        else:
-            load_dotenv()
-            self.api_key = os.environ["OPENAI_API_KEY"]
-        if model_id is not None:
-            self.model_id = model_id
-        else:
-            self.model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
+        load_dotenv()
+        self.api_key = os.environ["OPENAI_API_KEY"]
+        self.model_id = model_id
         self.client = OpenAI(api_key=self.api_key)
-        self.models = self.client.models.list()
         return
 
     def call(self,
