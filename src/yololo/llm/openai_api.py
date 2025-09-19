@@ -2,23 +2,19 @@ import os
 from typing import Sequence, Tuple, Dict
 
 from openai import OpenAI
+from dotenv import load_dotenv
 
 from yololo.llm.llm import ILargeLanguageModel
 
 
 class OpenaiApi(ILargeLanguageModel):
     def __init__(self,
-                 model_id: str = "gpt-4o-mini",
-                 api_key_or_path: str | None = None) -> None:
+                 model_id: str) -> None:
         """
         Initializes the openai api class with the due model id and api key
         """
-        if api_key_or_path is not None and os.path.isfile(api_key_or_path):
-            self.api_key = open(api_key_or_path).read()
-        elif isinstance(api_key_or_path, str):
-            self.api_key = api_key_or_path
-        else:
-            self.api_key = os.environ["OPENAI_API_KEY"]
+        load_dotenv()
+        self.api_key = os.environ["OPENAI_API_KEY"]
         self.model_id = model_id
         self.client = OpenAI(api_key=self.api_key)
         return
@@ -27,7 +23,7 @@ class OpenaiApi(ILargeLanguageModel):
              user_prompt: str,
              system_prompt: str = "You are a helpful assistant.",
              history: Sequence[Tuple[str, str]] | Sequence[Dict[str, str]] | None = None,
-             **kwargs: Dict[str, str]
+             **kwargs,
              ) -> str:
         history = [] if history is None else history
         conversation_history = []

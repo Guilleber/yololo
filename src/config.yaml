@@ -1,0 +1,18 @@
+#nom de classe, nom du module liste d'args
+
+models:
+  gpt-4o-mini:
+    class_name: OpenaiApi
+    module_name: yololo.llm.openai_api
+    args:
+      model_id: gpt-4o-mini
+  qwen-0.6b:
+    class_name: HuggingFaceModel
+    module_name: yololo.llm.hf
+    args:
+      model_id: Qwen/Qwen3-0.6B-Base
+  qwen-4b:
+    class_name: HuggingFaceModel
+    module_name: yololo.llm.hf
+    args:
+      model_id: Qwen/Qwen-4B

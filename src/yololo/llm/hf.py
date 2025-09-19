@@ -7,7 +7,7 @@ import gc
 
 
 class HuggingFaceModel(ILargeLanguageModel):
-    
+
     def __init__(self, model_id: str, **kwargs):
         """
         Initializes the HuggingFaceModel with the specified model ID and additional parameters.
@@ -17,8 +17,7 @@ class HuggingFaceModel(ILargeLanguageModel):
         """
         self.model_id = model_id
 
-
-    def call(self, system_prompt: str, user_prompt: str) -> str:
+    def call(self, user_prompt: str, system_prompt: str = "You are a helpful assistant.") -> str:
         tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         model = AutoModelForCausalLM.from_pretrained(
             self.model_id,
