@@ -83,7 +83,7 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="Qwen/Qwen3-4B",
+        default="gpt-4o-mini",
         help="Path to the YOLOv8 model file.",
     )
     argdict = parser.parse_args()

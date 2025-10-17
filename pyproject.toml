@@ -12,7 +12,8 @@ dependencies = [
   "torch",
   "transformers",
   "feedparser",
-  "chromadb"
+  "chromadb",
+  "openai"
 ]
 
 [tool.setuptools.packages.find]
