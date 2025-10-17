@@ -7,7 +7,11 @@ import yaml
 
 from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
+import threading
+import multiprocessing
 
+# always set before threads start
+multiprocessing.set_start_method("spawn", force=True)
 
 # Factory to inject LLM into handler
 def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: ChromaDBStorage) -> None:
@@ -59,7 +63,13 @@ def main(argdict: argparse.Namespace) -> None:
     storage = ChromaDBStorage()
 
     # storage.add_rss('https://www.theguardian.com/international/rss')
-    # storage.update_database()
+    def background_update():
+        storage.update_database()
+
+    thread = threading.Thread(target=background_update, daemon=True)
+    thread.start()
+
+    print("Continuing main program while database updates in background...")
 
     config_dict = yaml.safe_load(open("src/config.yaml", "r"))
     print(config_dict)
