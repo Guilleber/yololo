@@ -9,6 +9,34 @@ from yololo.llm.llm import ILargeLanguageModel
 from yololo.storage.ChromDB import ChromaDBStorage
 import threading
 import multiprocessing
+import signal
+import sys
+
+import sys
+import logging
+
+logging.basicConfig(filename='my_log_file.log', level=logging.INFO)
+
+class LoggerWriter:
+    def __init__(self, level):
+        self.level = level
+    def write(self, message):
+        if message.strip():  # ignore empty messages
+            self.level(message)
+    def flush(self):
+        pass  # needed for Python 3 compatibility
+
+# Redirect stdout and stderr
+sys.stdout = LoggerWriter(logging.info)
+sys.stderr = LoggerWriter(logging.error)
+
+#Make it capture SIGTERM
+def handle_sigterm(signum, frame):
+    print("SIGTERM received, shutting down...")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
+
 
 # always set before threads start
 multiprocessing.set_start_method("spawn", force=True)
