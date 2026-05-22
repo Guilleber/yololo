@@ -79,8 +79,9 @@ function createButton(x, y, lastSelectedText) {
             if (response && response.success) {
               showTooltip(x, y + 30, response.data.message);
             } else {
-              console.error("LLM error:", response?.error);
-              showTooltip(x, y + 30, "❌ LLM error");
+              const msg = response?.error || "Unknown error";
+              console.error("LLM error:", msg);
+              showTooltip(x, y + 30, "❌ " + msg);
             }
           }
         );

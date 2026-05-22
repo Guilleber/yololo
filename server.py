@@ -51,6 +51,15 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.end_headers()
 
+        def _send_json(self, code, payload):
+            body = json.dumps(payload).encode("utf-8")
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_POST(self):
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
@@ -58,31 +67,36 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
 
             print("Received:", data)
 
-            # Call the LLM
             user_input = data.get("text", "")
-            #TODO : If this gets more complex, we should move this to a RAG class
             system_prompt = (
                 "You are a community note creator, tasked to fact check posts based on provided news from a database. "
                 "Answer only based on provided news articles. "
                 "If there is no relevant information in the provided articles, say you couldn't find relevant information, don't invent. "
                 "As a community note creator, your answer should be really short (max 140 characters).")
-            database = storage.query(user_input)  # ['documents']
+
+            try:
+                database = storage.query(user_input)
+            except Exception as e:
+                print(f"ChromaDB error: {e}")
+                self._send_json(503, {"error": f"Database error ({type(e).__name__}): {e}"})
+                return
 
             final_prompt = f"Post : {user_input}. Relevant news articles : {database}"
 
-            response = llm_instance.call(system_prompt, final_prompt)
-
-
+            try:
+                response = llm_instance.call(system_prompt, final_prompt)
+            except Exception as e:
+                err_module = type(e).__module__ or ""
+                if "openai" in err_module.lower():
+                    msg = f"OpenAI API error ({type(e).__name__}): {e}"
+                else:
+                    msg = f"LLM error ({type(e).__name__}): {e}"
+                print(msg)
+                self._send_json(502, {"error": msg})
+                return
 
             print(response)
-
-            response = {"message": response}
-
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.end_headers()
-            self.wfile.write(json.dumps(response).encode("utf-8"))
+            self._send_json(200, {"message": response})
 
     return SimpleHandler
 
