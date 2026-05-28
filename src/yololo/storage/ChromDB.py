@@ -10,6 +10,30 @@ import chromadb
 
 import os
 import hashlib
+import multiprocessing
+from multiprocessing import Process, Queue
+from time import sleep
+from typing import Any
+
+
+def _process_source(source_name: Any, queue: multiprocessing.Queue) -> None:
+    """Runs in a separate process to update one source."""
+    from src.yololo.storage.ChromDB import ChromaDBStorage  # Import inside process
+    from src.yololo.domain.source_directory import Source
+
+    db = ChromaDBStorage()  # Reinitialize to get its own client safely
+    source = Source[source_name]
+    collection = db.client.get_collection(source.name)
+
+    count = 0
+    for docu in source.value().stream_newest():
+        db.add_document(docu, collection)
+        count += 1
+        if count % 10 == 0:
+            queue.put((source.name, count))
+
+    queue.put((source.name, count))
+    queue.put("DONE")
 
 class ChromaDBStorage:
     def __init__(self, persist_directory: str = "./chroma_db"):
@@ -38,44 +62,61 @@ class ChromaDBStorage:
         return hashlib.md5(f"{document.title}_{document.source}_{document.link}".encode()).hexdigest()
 
     def update_database(self) -> None:
-        #TODO : Update is slow even with just RSS flux of the guardian. We should probably make it run on the background in async if we can't speed it up
-        total_docs=0
+        """Parallel update of ChromaDB with periodic progress reporting."""
 
-        collection_names = self.client.list_collections()  # Returns list of collection names or collection objects
+        print("🔄 Starting ChromaDB update...")
+
+        # List collections (for initial count)
         total_docs = 0
-
-        for collection_info in collection_names:
-            # Depending on the Chroma version, list_collections() may return dicts or objects
-            collection_name = collection_info.name if hasattr(collection_info, "name") else collection_info
-
+        for collection_info in self.client.list_collections():
+            collection_name = getattr(collection_info, "name", collection_info)
             collection = self.client.get_collection(collection_name)
-            items = collection.get()
-            count = len(items["ids"])  # Number of documents in this collection
+            count = len(collection.get()["ids"])
             print(f"\t{collection_name}: {count} documents")
             total_docs += count
+        print(f"\tTotal documents before update: {total_docs}")
 
-        print(f"\tTotal documents in ChromaDB: {total_docs}")
+        # Create a queue for progress messages
+        progress_queue = Queue()
 
+        # Spawn one process per Source
+        processes = []
         for source in Source:
-            print(source.name, source.value)
-            for docu in source.value.stream_newest():
-                self.add_document(docu, self.client.get_collection(source.name))
+            p = Process(
+                target=_process_source,
+                args=(source.name, progress_queue),
+            )
+            p.start()
+            processes.append(p)
 
+        # Monitor progress
+        finished = 0
+        while finished < len(processes):
+            try:
+                msg = progress_queue.get(timeout=5)
+                if msg == "DONE":
+                    finished += 1
+                else:
+                    source_name, count = msg
+                    print(f"✅ {source_name}: {count} new docs added")
+            except Exception:
+                # Timeout: no message recently, can print heartbeat if needed
+                pass
 
+        for p in processes:
+            p.join()
 
-        for collection_info in collection_names:
-            # Depending on the Chroma version, list_collections() may return dicts or objects
-            collection_name = collection_info.name if hasattr(collection_info, "name") else collection_info
+        print("✅ All sources updated.")
 
+        # Final summary
+        total_docs = 0
+        for collection_info in self.client.list_collections():
+            collection_name = getattr(collection_info, "name", collection_info)
             collection = self.client.get_collection(collection_name)
-            items = collection.get()
-            count = len(items["ids"])  # Number of documents in this collection
+            count = len(collection.get()["ids"])
             print(f"\t{collection_name}: {count} documents")
             total_docs += count
-
-    # for source in Source:
-        #     #1 - Check oldest
-        # fds
+        print(f"\tTotal documents after update: {total_docs}")
 
     def generate_id(self, document: Document) -> str:
         return hashlib.md5(f"{document.title}_{document.source}_{document.link}".encode()).hexdigest()

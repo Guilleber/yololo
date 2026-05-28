@@ -5,5 +5,5 @@ from yololo.clients.the_guardian_client import TheGuardianClient, TheGuardianRSS
 
 #Have to split into own separate file otherwise it leads to circular import
 class Source(Enum):
-    # THE_GUARDIAN = TheGuardianClient
-    THE_GUARDIAN_RSS = TheGuardianRSSClient()
+    THE_GUARDIAN = TheGuardianClient
+    THE_GUARDIAN_RSS = TheGuardianRSSClient
