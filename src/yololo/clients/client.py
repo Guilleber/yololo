@@ -27,10 +27,11 @@ class IClient(ABC):
         :return: List of documents
         """
         docus = rss.read_feed(url)
-        for i, docu in enumerate(docus):
-            dd=Document(link=docu.link,
-                        title=docu.title,
-                        content=docu.content,
-                        source="The Guardian")
-            yield dd
+        for docu in docus:
+            yield Document(
+                link=docu.link,
+                title=docu.title,
+                content=docu.content,
+                source=self.name,
+            )
 

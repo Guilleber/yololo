@@ -16,3 +16,8 @@ models:
     module_name: yololo.llm.hf
     args:
       model_id: Qwen/Qwen-4B
+  gemini-2.5-flash:
+    class_name: GeminiApi
+    module_name: yololo.llm.gemini_api
+    args:
+      model_id: gemini-2.5-flash

@@ -13,7 +13,8 @@ dependencies = [
   "transformers",
   "feedparser",
   "chromadb",
-  "openai"
+  "openai",
+  "google-genai"
 ]
 
 [tool.setuptools.packages.find]

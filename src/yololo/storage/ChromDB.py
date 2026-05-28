@@ -138,11 +138,17 @@ class ChromaDBStorage:
         all_results = []
 
         for collection in self.client.list_collections():
-            results = collection.query(
-                query_texts=[query],
-                n_results=2,
-                include=["documents", "metadatas", "distances"]
-            )
+            if collection.count() == 0:
+                continue
+            try:
+                results = collection.query(
+                    query_texts=[query],
+                    n_results=2,
+                    include=["documents", "metadatas", "distances"]
+                )
+            except Exception as e:
+                print(f"Warning: skipping collection {collection.name}: {e}")
+                continue
 
             for doc, meta, dist in zip(
                     results["documents"][0],
