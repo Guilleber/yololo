@@ -44,6 +44,14 @@
       box-shadow: 0 0 7px #22c55e99;
     }
     .status-dot.stopped { background: #ef4444; }
+    .status-dot.starting {
+      background: #f59e0b;
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 4px #f59e0b99; }
+      50%       { box-shadow: 0 0 10px #f59e0bcc; }
+    }
 
     .field-label {
       font-size: 10px;
@@ -116,6 +124,12 @@
     <option value="gpt-4o-mini">GPT-4o Mini</option>
     <option value="qwen-0.6b">Qwen 0.6B (local)</option>
     <option value="qwen-4b">Qwen 4B (local)</option>
+  </select>
+
+  <div class="field-label">Retrieval</div>
+  <select id="retrievalSelect">
+    <option value="search">Web search (Tavily)</option>
+    <option value="db">Local DB (ChromaDB)</option>
   </select>
 
   <div class="buttons">
