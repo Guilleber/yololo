@@ -79,7 +79,7 @@ GUARDIAN_API_KEY=      # required only for the ChromaDB/local-DB retrieval mode
 
 1. Start the launcher (only needs to run once; survives server restarts):
    ```bash
-   python server_launcher.py
+   uv run server_launcher.py
    ```
 2. Load the extension in Firefox (see below).
 3. Use the popup to pick a **model** and **retrieval** mode, then click **▶ Start**. The dot turns amber while loading, then green when ready.
