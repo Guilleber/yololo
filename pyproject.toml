@@ -14,7 +14,13 @@ dependencies = [
   "feedparser",
   "chromadb",
   "openai",
-  "google-genai"
+  "google-genai",
+  "tavily-python",
+  "python-dotenv",
+  "flask",
+  "psutil",
+  "pyyaml",
+  "requests"
 ]
 
 [tool.setuptools.packages.find]

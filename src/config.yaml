@@ -1,5 +1,18 @@
 #nom de classe, nom du module liste d'args
 
+retrieval:
+  db:
+    class_name: ChromaRetrieval
+    module_name: yololo.retrieval.chroma_retrieval
+    args:
+      persist_directory: ./chroma_db
+  search:
+    class_name: TavilyRetrieval
+    module_name: yololo.retrieval.search_retrieval
+    args:
+      api_key: ${TAVILY_API_KEY}
+      max_results: 5
+
 models:
   gpt-4o-mini:
     class_name: OpenaiApi

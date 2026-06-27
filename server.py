@@ -1,17 +1,16 @@
 import json
 import argparse
 import importlib
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import yaml
+from dotenv import load_dotenv
 
 from yololo.llm.llm import ILargeLanguageModel
-from yololo.storage.ChromDB import ChromaDBStorage
-import threading
+from yololo.retrieval.base import IRetrieval
 import multiprocessing
 import signal
-import sys
-
 import sys
 import logging
 
@@ -41,8 +40,8 @@ signal.signal(signal.SIGTERM, handle_sigterm)
 # always set before threads start
 multiprocessing.set_start_method("spawn", force=True)
 
-# Factory to inject LLM into handler
-def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: ChromaDBStorage) -> None:
+# Factory to inject LLM and retrieval backend into handler
+def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: IRetrieval) -> None:
     class SimpleHandler(BaseHTTPRequestHandler):
         def do_OPTIONS(self):
             self.send_response(200)
@@ -77,8 +76,8 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
             try:
                 database = storage.query(user_input)
             except Exception as e:
-                print(f"ChromaDB error: {e}")
-                self._send_json(503, {"error": f"Database error ({type(e).__name__}): {e}"})
+                print(f"Retrieval error: {e}")
+                self._send_json(503, {"error": f"Retrieval error ({type(e).__name__}): {e}"})
                 return
 
             final_prompt = f"Post : {user_input}. Relevant news articles : {database}"
@@ -95,36 +94,54 @@ def make_handler_with_llm_and_db(llm_instance: ILargeLanguageModel, storage: Chr
                 self._send_json(502, {"error": msg})
                 return
 
+            sources = [
+                {"title": doc.title, "url": doc.link}
+                for doc in database
+                if doc.link
+            ]
             print(response)
-            self._send_json(200, {"message": response})
+            self._send_json(200, {
+                "message": response,
+                "source_count": len(database),
+                "sources": sources[:3],
+            })
 
     return SimpleHandler
 
 
+def _resolve_args(args: dict) -> dict:
+    """Expand ${ENV_VAR} placeholders in config args."""
+    resolved = {}
+    for k, v in args.items():
+        if isinstance(v, str) and v.startswith("${") and v.endswith("}"):
+            env_var = v[2:-1]
+            resolved[k] = os.environ[env_var]
+        else:
+            resolved[k] = v
+    return resolved
+
+
 def main(argdict: argparse.Namespace) -> None:
-    storage = ChromaDBStorage()
-
-    # storage.add_rss('https://www.theguardian.com/international/rss')
-    def background_update():
-        storage.update_database()
-
-    thread = threading.Thread(target=background_update, daemon=True)
-    thread.start()
-
-    print("Continuing main program while database updates in background...")
+    load_dotenv("src/.env")
 
     config_dict = yaml.safe_load(open("src/config.yaml", "r"))
-    print(config_dict)
-    print(argdict.model)
-    llm_mod = importlib.import_module(config_dict["models"][argdict.model]["module_name"])
-    llm_class = getattr(llm_mod, config_dict["models"][argdict.model]["class_name"])
-    llm = llm_class(**config_dict["models"][argdict.model]["args"])
-    # Create the handler class with the LLM preloaded
-    HandlerClass = make_handler_with_llm_and_db(llm, storage)
 
-    # Start the server
+    # Instantiate retrieval backend
+    retrieval_cfg = config_dict["retrieval"][argdict.retrieval]
+    retrieval_mod = importlib.import_module(retrieval_cfg["module_name"])
+    retrieval_class = getattr(retrieval_mod, retrieval_cfg["class_name"])
+    retrieval = retrieval_class(**_resolve_args(retrieval_cfg["args"]))
+
+    # Instantiate LLM
+    llm_cfg = config_dict["models"][argdict.model]
+    llm_mod = importlib.import_module(llm_cfg["module_name"])
+    llm_class = getattr(llm_mod, llm_cfg["class_name"])
+    llm = llm_class(**llm_cfg["args"])
+
+    HandlerClass = make_handler_with_llm_and_db(llm, retrieval)
+
     httpd = HTTPServer(("localhost", 5000), HandlerClass)
-    print("Server running at http://localhost:5000")
+    print(f"Server running at http://localhost:5000 (model={argdict.model}, retrieval={argdict.retrieval})")
     httpd.serve_forever()
 
 
@@ -132,11 +149,17 @@ if __name__ == "__main__":
     # TODO: CHANGE INTO A PRODUCT FINAL VERSION
     parser = argparse.ArgumentParser(description="YOLOLO: You Only Live Once Like Oesterreicht")
     parser.add_argument(
-        "-m",
-        "--model",
+        "-m", "--model",
         type=str,
         default="gpt-4o-mini",
-        help="Path to the YOLOv8 model file.",
+        help="LLM backend key (defined in config.yaml).",
+    )
+    parser.add_argument(
+        "-r", "--retrieval",
+        type=str,
+        default="search",
+        choices=["db", "search"],
+        help="Retrieval backend: 'db' (ChromaDB) or 'search' (Tavily).",
     )
     argdict = parser.parse_args()
     main(argdict)
