@@ -112,6 +112,7 @@ function createButton(x, y, lastSelectedText) {
           (response) => {
             if (response && response.success) {
               showResult(x, y + 30, response.data);
+              showResult(x, y + 30, response.data);
             } else {
               const msg = response?.error || "Unknown error";
               console.error("LLM error:", msg);

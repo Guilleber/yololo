@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Instructions for Claude
+
+- **After any significant change** (new feature, new backend, changed config schema, changed CLI flags, changed setup steps), update `README.md` to reflect it.
+
 ## What this project is
 
 Yololo is a fact-checking tool. A Firefox extension lets users highlight text on any webpage; clicking the "➤" button sends the text to a local Python server, which queries a ChromaDB vector database of news articles and passes the most relevant ones to an LLM to generate a short (≤140 character) community-note-style verdict.

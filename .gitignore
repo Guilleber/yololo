@@ -1,3 +1,9 @@
+# Runtime data
+chroma_db/
+hf_cache/
+fred_dev/
+*.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
