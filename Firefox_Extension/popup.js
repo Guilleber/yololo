@@ -1,66 +1,56 @@
-const dot = document.getElementById("statusDot");
-const modelSelect = document.getElementById("modelSelect");
-const logDiv = document.getElementById("log");
+const modelSelect  = document.getElementById("modelSelect");
+const tavilyInput  = document.getElementById("tavilyKey");
+const geminiInput  = document.getElementById("geminiKey");
+const openaiInput  = document.getElementById("openaiKey");
+const statusDiv    = document.getElementById("status");
+const dot          = document.getElementById("statusDot");
 
-function setLog(msg, type = "info") {
-  logDiv.innerHTML = `<span class="${type === "ok" ? "ok" : type === "err" ? "err" : ""}">${msg}</span>`;
-}
-
-function setStatus(running) {
-  dot.className = "status-dot " + (running ? "running" : "stopped");
-}
-
-// Restore saved model selection
-const savedModel = localStorage.getItem("yololo_model");
-if (savedModel) modelSelect.value = savedModel;
-
-modelSelect.addEventListener("change", () => {
-  localStorage.setItem("yololo_model", modelSelect.value);
+// Load saved values
+browser.storage.local.get(["llm_model", "tavily_key", "gemini_key", "openai_key"]).then(s => {
+  if (s.llm_model)   modelSelect.value = s.llm_model;
+  if (s.tavily_key)  tavilyInput.value  = s.tavily_key;
+  if (s.gemini_key)  geminiInput.value  = s.gemini_key;
+  if (s.openai_key)  openaiInput.value  = s.openai_key;
+  updateStatus();
 });
 
-// Check status on open
-fetch("http://127.0.0.1:8200/status")
-  .then(r => r.json())
-  .then(data => {
-    setStatus(data.running);
-    if (data.running && data.model) {
-      setLog(`Running: ${data.model}`, "ok");
-      modelSelect.value = data.model;
-    }
-  })
-  .catch(() => setStatus(false));
+// Auto-save on change
+modelSelect.addEventListener("change", save);
+tavilyInput.addEventListener("input",  save);
+geminiInput.addEventListener("input",  save);
+openaiInput.addEventListener("input",  save);
 
-document.getElementById("startServer").addEventListener("click", async () => {
-  const model = modelSelect.value;
-  localStorage.setItem("yololo_model", model);
-  setLog("Starting…");
-  try {
-    const res = await fetch("http://127.0.0.1:8200/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model })
-    });
-    const data = await res.json();
-    if (data.status === "started" || data.status === "already_running") {
-      setStatus(true);
-      setLog(data.status === "started" ? `Started: ${model}` : `Already running: ${data.model || model}`, "ok");
-    } else {
-      setLog(data.error || "Failed to start", "err");
-    }
-  } catch (err) {
-    setStatus(false);
-    setLog("Cannot reach launcher — is server_launcher.py running?", "err");
-  }
-});
+function save() {
+  browser.storage.local.set({
+    llm_model:  modelSelect.value,
+    tavily_key: tavilyInput.value.trim(),
+    gemini_key: geminiInput.value.trim(),
+    openai_key: openaiInput.value.trim(),
+  });
+  updateStatus();
+}
 
-document.getElementById("stopServer").addEventListener("click", async () => {
-  setLog("Stopping…");
-  try {
-    const res = await fetch("http://127.0.0.1:8200/stop", { method: "POST" });
-    const data = await res.json();
-    setStatus(false);
-    setLog("Stopped", "ok");
-  } catch (err) {
-    setLog("Cannot reach launcher", "err");
+function updateStatus() {
+  const model     = modelSelect.value;
+  const hasTavily = tavilyInput.value.trim().length > 0;
+  const hasLlm    = model.startsWith("gemini")
+    ? geminiInput.value.trim().length > 0
+    : openaiInput.value.trim().length > 0;
+
+  if (hasTavily && hasLlm) {
+    dot.className = "status-dot ready";
+    statusDiv.innerHTML = `<span class="ok">Ready — ${model}</span>`;
+  } else {
+    dot.className = "status-dot missing";
+    const missing = [!hasTavily && "Tavily key", !hasLlm && `${model} key`].filter(Boolean).join(", ");
+    statusDiv.innerHTML = `<span class="warn">Missing: ${missing}</span>`;
   }
+}
+
+// Toggle password visibility
+document.querySelectorAll(".key-wrap button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const input = document.getElementById(btn.dataset.target);
+    input.type = input.type === "password" ? "text" : "password";
+  });
 });
